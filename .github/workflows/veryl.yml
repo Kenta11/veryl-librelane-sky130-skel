@@ -1,0 +1,37 @@
+name: veryl
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  veryl:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: veryl-lang/setup-veryl@v1
+      - name: Format check
+        run: veryl fmt --check
+      - name: Semantic check
+        run: veryl check
+      - name: Build (transpile to SystemVerilog)
+        run: veryl build
+
+  # Functional check of the generated RTL. Runs only if a tb/ testbench exists.
+  sim:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: veryl-lang/setup-veryl@v1
+      - name: Install Icarus Verilog
+        run: sudo apt-get update && sudo apt-get install -y iverilog
+      - name: Build + functional check
+        run: |
+          veryl build
+          if ls tb/*.sv >/dev/null 2>&1; then
+            mkdir -p build
+            iverilog -g2012 -o build/tb.vvp tb/*.sv sv/*.sv
+            vvp build/tb.vvp
+          else
+            echo "no testbench under tb/, skipping"
+          fi

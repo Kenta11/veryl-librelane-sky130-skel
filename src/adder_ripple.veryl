@@ -1,0 +1,50 @@
+/// Ripple-carry adder (RCA): an explicit chain of full adders.
+/// Smallest area, longest carry path (delay grows linearly with WIDTH).
+module AdderRipple #(
+    param WIDTH: u32 = 32,
+) (
+    i_clk : input  clock       ,
+    i_rst : input  reset       ,
+    i_a   : input  logic<WIDTH>,
+    i_b   : input  logic<WIDTH>,
+    i_cin : input  logic       ,
+    o_sum : output logic<WIDTH>,
+    o_cout: output logic       ,
+) {
+    var a  : logic<WIDTH>;
+    var b  : logic<WIDTH>;
+    var cin: logic       ;
+
+    always_ff {
+        if_reset {
+            a   = 0;
+            b   = 0;
+            cin = 0;
+        } else {
+            a   = i_a;
+            b   = i_b;
+            cin = i_cin;
+        }
+    }
+
+    // full-adder chain
+    var carry: logic<WIDTH + 1>;
+    var sum  : logic<WIDTH>    ;
+    always_comb {
+        carry[0] = cin;
+        for i in 0..WIDTH {
+            sum[i]       = a[i] ^ b[i] ^ carry[i];
+            carry[i + 1] = a[i] & b[i] | carry[i] & (a[i] ^ b[i]);
+        }
+    }
+
+    always_ff {
+        if_reset {
+            o_sum  = 0;
+            o_cout = 0;
+        } else {
+            o_sum  = sum;
+            o_cout = carry[WIDTH];
+        }
+    }
+}

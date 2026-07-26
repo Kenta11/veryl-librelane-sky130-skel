@@ -1,0 +1,9 @@
+# Files that live in the skeleton repo but should NOT be copied into projects
+# that apply it with `git skel init` / `git skel update` (.gitignore syntax).
+
+# The skeleton's own repository README (projects keep their own).
+/README.md
+
+# License of the skeleton repo itself (projects keep their own).
+/LICENSE-MIT
+/LICENSE-APACHE

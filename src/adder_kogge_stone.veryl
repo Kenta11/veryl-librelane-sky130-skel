@@ -1,0 +1,73 @@
+/// Kogge-Stone adder: a parallel-prefix adder with log2(WIDTH) carry stages.
+/// Shortest delay of the group, at the cost of the most cells and wiring.
+module AdderKoggeStone #(
+    param WIDTH: u32 = 32,
+) (
+    i_clk : input  clock       ,
+    i_rst : input  reset       ,
+    i_a   : input  logic<WIDTH>,
+    i_b   : input  logic<WIDTH>,
+    i_cin : input  logic       ,
+    o_sum : output logic<WIDTH>,
+    o_cout: output logic       ,
+) {
+    const STAGES: u32 = $clog2(WIDTH); // number of prefix stages
+
+    var a  : logic<WIDTH>;
+    var b  : logic<WIDTH>;
+    var cin: logic       ;
+
+    always_ff {
+        if_reset {
+            a   = 0;
+            b   = 0;
+            cin = 0;
+        } else {
+            a   = i_a;
+            b   = i_b;
+            cin = i_cin;
+        }
+    }
+
+    // generate / propagate signals across prefix stages
+    var g    : logic<WIDTH>     [STAGES + 1];
+    var p    : logic<WIDTH>     [STAGES + 1];
+    var carry: logic<WIDTH + 1>             ;
+    var sum  : logic<WIDTH>                 ;
+
+    always_comb {
+        // stage 0: bit-level generate/propagate
+        for i in 0..WIDTH {
+            g[0][i] = a[i] & b[i];
+            p[0][i] = a[i] ^ b[i];
+        }
+        // prefix stages: combine spans of doubling distance
+        for s in 0..STAGES {
+            for i in 0..WIDTH {
+                if i >= (1 << s) {
+                    g[s + 1][i] = g[s][i] | p[s][i] & g[s][i - (1 << s)];
+                    p[s + 1][i] = p[s][i] & p[s][i - (1 << s)];
+                } else {
+                    g[s + 1][i] = g[s][i];
+                    p[s + 1][i] = p[s][i];
+                }
+            }
+        }
+        // carries (fold in the external carry-in) and final sum
+        carry[0] = cin;
+        for i in 0..WIDTH {
+            carry[i + 1] = g[STAGES][i] | p[STAGES][i] & cin;
+            sum[i]       = p[0][i] ^ carry[i];
+        }
+    }
+
+    always_ff {
+        if_reset {
+            o_sum  = 0;
+            o_cout = 0;
+        } else {
+            o_sum  = sum;
+            o_cout = carry[WIDTH];
+        }
+    }
+}

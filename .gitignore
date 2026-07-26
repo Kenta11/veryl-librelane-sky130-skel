@@ -1,0 +1,15 @@
+# Veryl build outputs / metadata
+/sv/
+/.build/
+/dependencies/
+Veryl.lock
+*.f
+
+# Functional-check artifacts
+/build/
+*.vvp
+*.vcd
+
+# LibreLane runs and results
+librelane/*/runs/
+results.csv

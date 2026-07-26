@@ -1,0 +1,19 @@
+# Veryl project config. Rename `project.name` to your own project, then add
+# this file to your project's .gitskelignore so `git skel update` won't revert
+# it. The generated SystemVerilog module names are prefixed with project.name
+# (e.g. project "adder_compare" -> module "adder_compare_AdderRipple"); keep the
+# DESIGN_NAME in each librelane/<design>/config.json in sync with that prefix.
+[project]
+name    = "adder_compare"
+version = "0.1.0"
+license = "MIT OR Apache-2.0"
+
+[build]
+clock_type    = "posedge"
+reset_type    = "async_low"
+filelist_type = "absolute"
+sources       = ["src"]
+target        = {type = "directory", path = "sv"}
+
+[format]
+indent_width = 4

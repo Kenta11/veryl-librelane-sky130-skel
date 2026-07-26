@@ -1,0 +1,72 @@
+/// Carry-select adder (CSA): the width is split into fixed-size blocks.
+/// Each block speculatively computes its sum for carry-in 0 and 1, then
+/// selects once the real block carry arrives. Trades area for shorter delay.
+module AdderCarrySelect #(
+    param WIDTH: u32 = 32,
+    param BLK  : u32 = 4 , // block size (WIDTH must be a multiple of BLK)
+) (
+    i_clk : input  clock       ,
+    i_rst : input  reset       ,
+    i_a   : input  logic<WIDTH>,
+    i_b   : input  logic<WIDTH>,
+    i_cin : input  logic       ,
+    o_sum : output logic<WIDTH>,
+    o_cout: output logic       ,
+) {
+    const NB: u32 = WIDTH / BLK; // number of blocks
+
+    var a  : logic<WIDTH>;
+    var b  : logic<WIDTH>;
+    var cin: logic       ;
+
+    always_ff {
+        if_reset {
+            a   = 0;
+            b   = 0;
+            cin = 0;
+        } else {
+            a   = i_a;
+            b   = i_b;
+            cin = i_cin;
+        }
+    }
+
+    var sum      : logic<WIDTH> ;
+    var blk_carry: logic<NB + 1>; // carry into each block
+    var s0       : logic<WIDTH> ; // speculative sum, block carry-in = 0
+    var s1       : logic<WIDTH> ; // speculative sum, block carry-in = 1
+    var carry0   : logic        ;
+    var carry1   : logic        ;
+
+    always_comb {
+        blk_carry[0] = cin;
+        for blk in 0..NB {
+            // two speculative ripples inside the block
+            carry0 = 0;
+            carry1 = 1;
+            for j in 0..BLK {
+                s0[blk * BLK + j] = a[blk * BLK + j] ^ b[blk * BLK + j] ^ carry0;
+                s1[blk * BLK + j] = a[blk * BLK + j] ^ b[blk * BLK + j] ^ carry1;
+                carry0            = a[blk * BLK + j] & b[blk * BLK + j] | carry0
+                    & (a[blk * BLK + j] ^ b[blk * BLK + j]);
+                carry1            = a[blk * BLK + j] & b[blk * BLK + j] | carry1
+                    & (a[blk * BLK + j] ^ b[blk * BLK + j]);
+            }
+            // real block carry-out selects between the two speculations
+            blk_carry[blk + 1] = if blk_carry[blk] ? carry1 : carry0;
+            for k in 0..BLK {
+                sum[blk * BLK + k] = if blk_carry[blk] ? s1[blk * BLK + k] : s0[blk * BLK + k];
+            }
+        }
+    }
+
+    always_ff {
+        if_reset {
+            o_sum  = 0;
+            o_cout = 0;
+        } else {
+            o_sum  = sum;
+            o_cout = blk_carry[NB];
+        }
+    }
+}

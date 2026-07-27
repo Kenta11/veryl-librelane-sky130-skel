@@ -1,45 +1,36 @@
-# Veryl -> SystemVerilog -> LibreLane flow.
+# Veryl -> SystemVerilog -> LibreLane (place & route) -> area/power/timing.
 #
-#   make check     functional check of the RTL (veryl test, native simulator)
+#   make check     functional check of the design (veryl test, native simulator)
 #   make sv        transpile the Veryl sources to SystemVerilog (sv/)
-#   make flow      run the full LibreLane flow for every design
-#   make compare   collect area/power/timing into a comparison table
-#   make all       sv + flow + compare
+#   make pnr       run the full LibreLane flow (synthesis .. place & route)
+#   make report    print area / power / timing from the latest run
+#   make all       pnr + report
 #   make clean     remove generated SV and LibreLane runs
-#
-# Designs are auto-discovered from librelane/<name>/config.json, so adding a new
-# design is just: drop a src/*.veryl module and a librelane/<name>/config.json.
 
 VERYL     ?= veryl
 LIBRELANE ?= librelane          # or: nix run github:librelane/librelane --
 PYTHON    ?= python3
 
-# every librelane/<name>/config.json -> <name>
-DESIGNS := $(notdir $(patsubst %/,%,$(dir $(wildcard librelane/*/config.json))))
+.PHONY: all check sv pnr report clean
 
-.PHONY: all check sv flow compare clean list $(addprefix flow-,$(DESIGNS))
-
-all: sv flow compare
+all: pnr report
 
 # Functional check via Veryl's built-in native simulator (no external HDL
-# simulator required). Tests are the `#[test(...)]` modules in src/*.veryl.
+# simulator required). Testbenches are the `#[test(...)]` modules under tb/.
 check:
 	$(VERYL) test
 
 sv:
 	$(VERYL) build
 
-flow: $(addprefix flow-,$(DESIGNS))
+# Place & route the design with LibreLane (sky130). Edit librelane/config.json
+# to point DESIGN_NAME at your top module and to tune CLOCK_PERIOD etc.
+pnr: sv
+	$(LIBRELANE) librelane/config.json
 
-flow-%:
-	$(VERYL) build
-	$(LIBRELANE) librelane/$*/config.json
-
-compare:
-	$(PYTHON) scripts/compare.py --csv results.csv
-
-list:
-	@echo "designs: $(DESIGNS)"
+# Print area / power / timing of the latest LibreLane run.
+report:
+	$(PYTHON) scripts/report.py
 
 clean:
-	rm -rf sv build results.csv librelane/*/runs .build dependencies Veryl.lock *.f
+	rm -rf sv build librelane/runs .build dependencies Veryl.lock *.f

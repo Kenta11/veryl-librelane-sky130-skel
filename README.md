@@ -1,16 +1,18 @@
 # veryl-librelane-sky130-skel
 
-A [git-skel](https://github.com/dalance/git-skel) skeleton for taking
-[Veryl](https://veryl-lang.org/) RTL through the
-[LibreLane](https://github.com/librelane/librelane) ASIC flow (sky130) and
-comparing **area / power / timing** across designs.
+A [git-skel](https://github.com/dalance/git-skel) skeleton for taking a
+[Veryl](https://veryl-lang.org/) design through the
+[LibreLane](https://github.com/librelane/librelane) flow (sky130) — synthesis,
+place & route — and reading its **area / power / timing**.
 
-It ships the flow plumbing you don't want to rewrite per project — a
-design-auto-discovering `Makefile`, a metrics collector (`scripts/compare.py`),
-LibreLane config defaults, and a Veryl CI workflow — plus a small worked example:
-four 32-bit adders (ripple / carry-select / Kogge-Stone / behavioral) with
-embedded `#[test]` benches that check each against a golden model using Veryl's
-built-in native simulator (no external HDL simulator required).
+It ships the flow plumbing you don't want to rewrite per project — a `Makefile`,
+a metrics reporter (`scripts/report.py`), a LibreLane config with sensible
+defaults, and a Veryl CI workflow — plus a tiny example design (a registered
+32-bit adder) with a `tb/` testbench that runs on Veryl's built-in native
+simulator (no external HDL simulator required).
+
+One skeleton = one design. To compare multiple designs, start a separate project
+from this skeleton for each and compare their reports.
 
 ## Use it
 
@@ -18,23 +20,26 @@ built-in native simulator (no external HDL simulator required).
 # in a new or existing project
 git skel init https://github.com/<owner>/veryl-librelane-sky130-skel
 make check     # functional check via `veryl test` (native simulator)
-make flow      # run LibreLane on every design (needs LibreLane + sky130)
-make compare   # area/power/timing table
+make pnr       # synthesis + place & route with LibreLane (needs LibreLane + sky130)
+make report    # print area / power / timing of the run
 ```
 
-Pull later skeleton improvements with `git skel update`.
+Replace `src/` with your design, point `DESIGN_NAME` in `librelane/config.json`
+at your top module, and re-run. Pull later skeleton improvements with
+`git skel update`.
 
 ## What's inside
 
 | Path | Role | Kind |
 |------|------|------|
-| `Makefile` | `sv` / `check` / `flow` / `compare`, auto-discovers designs | infra |
-| `scripts/compare.py` | reads each run's `metrics.json` → comparison table | infra |
+| `Makefile` | `check` / `sv` / `pnr` / `report` | infra |
+| `scripts/report.py` | reads the run's `metrics.json` → area/power/timing summary | infra |
 | `.github/workflows/veryl.yml` | `veryl fmt --check` / `check` / `test` / `build` | infra |
 | `docs/FLOW.md` | end-user flow guide (propagates to projects) | infra |
 | `Veryl.toml` | project config — **rename & `.gitskelignore` in your project** | seed |
-| `src/*.veryl` | example adders + embedded `#[test]` benches — replace with your RTL | seed |
-| `librelane/<design>/config.json` | per-design sky130 config | seed |
+| `src/*.veryl` | your design (one top module, may span several files) | seed |
+| `tb/*.veryl` | testbenches (`#[test]` modules, native simulator) | seed |
+| `librelane/config.json` | LibreLane / sky130 config for the design | seed |
 
 **infra** = maintained by the skeleton, safe to receive on `git skel update`.
 **seed** = starting content you own after `init`; add to your project's

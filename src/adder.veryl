@@ -1,0 +1,56 @@
+/// Example design: a registered 32-bit adder.
+///
+/// Replace this with your own design. The top module can span several files
+/// under src/ — Veryl compiles the whole directory. Keep the module you want to
+/// place-and-route named to match DESIGN_NAME in librelane/config.json
+/// (Veryl prefixes generated module names with the project name, e.g. project
+/// "example" -> module "example_Adder").
+///
+/// Inputs and outputs are registered so that place-and-route sees a clean
+/// register-to-register path to report area / power / timing on.
+module Adder #(
+    param WIDTH: u32 = 32,
+) (
+    i_clk : input  clock       ,
+    i_rst : input  reset       ,
+    i_a   : input  logic<WIDTH>,
+    i_b   : input  logic<WIDTH>,
+    i_cin : input  logic       ,
+    o_sum : output logic<WIDTH>,
+    o_cout: output logic       ,
+) {
+    // registered inputs
+    var a  : logic<WIDTH>;
+    var b  : logic<WIDTH>;
+    var cin: logic       ;
+
+    always_ff {
+        if_reset {
+            a   = 0;
+            b   = 0;
+            cin = 0;
+        } else {
+            a   = i_a;
+            b   = i_b;
+            cin = i_cin;
+        }
+    }
+
+    // combinational addition (WIDTH+1 bits to capture the carry-out)
+    const W1     : u32       = WIDTH + 1;
+    var   sum_ext: logic<W1>;
+    always_comb {
+        sum_ext = (a as W1) + (b as W1) + (cin as W1);
+    }
+
+    // registered outputs
+    always_ff {
+        if_reset {
+            o_sum  = 0;
+            o_cout = 0;
+        } else {
+            o_sum  = sum_ext[WIDTH - 1:0];
+            o_cout = sum_ext[WIDTH];
+        }
+    }
+}

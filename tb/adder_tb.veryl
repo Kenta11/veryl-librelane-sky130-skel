@@ -1,0 +1,69 @@
+/// Testbench for `Adder`, run with Veryl's built-in native simulator
+/// (`veryl test`) — no external HDL simulator required.
+///
+/// Testbenches live under tb/ and are marked with `#[test(...)]`. `veryl build`
+/// wraps them in an `ifdef` guard, so they never reach synthesis / LibreLane.
+///
+/// Each vector is held stable for 2 clocks (input reg + output reg), then
+/// {cout, sum} is checked against a golden a + b + cin computed in `g`.
+#[test(test_adder)]
+module test_adder {
+    const W : u32 = 32;
+    const W1: u32 = 33;
+
+    inst clk: $tb::clock_gen;
+    inst rst: $tb::reset_gen ( clk );
+
+    var a   : logic<W> ;
+    var b   : logic<W> ;
+    var cin : logic    ;
+    var sum : logic<W> ;
+    var cout: logic    ;
+    var g   : logic<W1>;
+
+    inst dut: Adder ( i_clk: clk, i_rst: rst, i_a: a, i_b: b, i_cin: cin, o_sum: sum, o_cout: cout );
+
+    always_comb {
+        g = (a as W1) + (b as W1) + (cin as W1);
+    }
+
+    initial {
+        a          = 0;
+        b          = 0;
+        cin        = 0;
+        rst.assert();
+        clk.next  (2);
+
+        a        = 32'hffff_ffff;
+        b        = 32'hffff_ffff;
+        cin      = 1;
+        clk.next(2);
+        $assert (sum == g[W - 1:0] && cout == g[W]);
+
+        a        = 32'hffff_ffff;
+        b        = 32'd1;
+        cin      = 0;
+        clk.next(2);
+        $assert (sum == g[W - 1:0] && cout == g[W]);
+
+        a        = 32'h8000_0000;
+        b        = 32'h8000_0000;
+        cin      = 0;
+        clk.next(2);
+        $assert (sum == g[W - 1:0] && cout == g[W]);
+
+        a        = 32'h1234_5678;
+        b        = 32'h8765_4321;
+        cin      = 1;
+        clk.next(2);
+        $assert (sum == g[W - 1:0] && cout == g[W]);
+
+        a        = 32'hdead_beef;
+        b        = 32'h0bad_f00d;
+        cin      = 0;
+        clk.next(2);
+        $assert (sum == g[W - 1:0] && cout == g[W]);
+
+        $finish();
+    }
+}

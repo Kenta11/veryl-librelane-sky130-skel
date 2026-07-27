@@ -1,10 +1,10 @@
 # Veryl project config. Rename `project.name` to your own project, then add
 # this file to your project's .gitskelignore so `git skel update` won't revert
 # it. The generated SystemVerilog module names are prefixed with project.name
-# (e.g. project "adder_compare" -> module "adder_compare_AdderRipple"); keep the
-# DESIGN_NAME in each librelane/<design>/config.json in sync with that prefix.
+# (e.g. project "example" -> module "example_Adder"); keep DESIGN_NAME in
+# librelane/config.json in sync with that prefix + your top module name.
 [project]
-name    = "adder_compare"
+name    = "example"
 version = "0.1.0"
 license = "MIT OR Apache-2.0"
 
@@ -12,7 +12,9 @@ license = "MIT OR Apache-2.0"
 clock_type    = "posedge"
 reset_type    = "async_low"
 filelist_type = "absolute"
-sources       = ["src"]
+# Design lives in src/ (may be many files); testbenches live in tb/. Test
+# modules are `ifdef`-guarded in the generated SV, so they never reach synthesis.
+sources       = ["src", "tb"]
 target        = {type = "directory", path = "sv"}
 
 [format]

@@ -1,6 +1,6 @@
 {
-    "DESIGN_NAME": "adder_compare_AdderCarrySelect",
-    "VERILOG_FILES": "dir::../../sv/adder_carry_select.sv",
+    "DESIGN_NAME": "example_Adder",
+    "VERILOG_FILES": "dir::../sv/*.sv",
     "CLOCK_PORT": "i_clk",
     "CLOCK_PERIOD": 8,
     "PDK": "sky130A",

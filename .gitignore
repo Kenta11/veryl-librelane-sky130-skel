@@ -9,6 +9,5 @@ Veryl.lock
 /build/
 *.vcd
 
-# LibreLane runs and results
-librelane/*/runs/
-results.csv
+# LibreLane runs
+librelane/runs/

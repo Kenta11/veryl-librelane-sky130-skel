@@ -39,12 +39,24 @@
 
 ## 使い方
 
+普段はこれだけ:
+
 ```bash
-make check     # 機能検証（veryl test / ネイティブシミュレータ。外部ツール不要）
-make sv        # Veryl → SystemVerilog
-make pnr       # LibreLane フロー（合成〜配置配線。数分）
-make report    # 最新ランの面積/電力/遅延を表示
+make           # 面積/電力/遅延を表示（未実行なら先に P&R を回す）
 ```
+
+RTL を変更したら `make pnr` でレイアウトを更新してから `make`（または
+`make report`）で新しい数字を見ます。その他のターゲット:
+
+```bash
+make synth     # 面積/クリティカルパス/電力の即席概算（veryl synth。PDK不要）
+make check     # 機能検証（veryl test / ネイティブシミュレータ。外部ツール不要）
+make pnr       # LibreLane フロー（合成〜配置配線。数分）
+make sv        # Veryl → SystemVerilog のみ
+```
+
+`make synth` は Veryl 単体の高速な概算（PDK・LibreLane 不要）で、反復に便利です。
+`make` / `make pnr` はレイアウト後の正確な値を返します。
 
 LibreLane の起動方法が違う場合は上書きできます:
 
@@ -59,8 +71,8 @@ make pnr LIBRELANE="nix run github:librelane/librelane --"
 3. `librelane/config.json` の `DESIGN_NAME` をトップに合わせる
    （`<project.name>_<ModuleName>`。Veryl がモジュール名にプロジェクト名を前置。
    例: project `example` / module `Adder` → `example_Adder`）
-4. 必要に応じて `CLOCK_PERIOD` など `config.json` を調整
-5. `make check` → `make pnr` → `make report`
+4. `[synth]` の `top` と `librelane/config.json` の `CLOCK_PERIOD` などを調整
+5. `make check`（機能）→ `make synth`（概算）→ `make`（P&R して数字表示）
 
 ## 結果の読み方と注意
 

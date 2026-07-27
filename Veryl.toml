@@ -19,3 +19,12 @@ target        = {type = "directory", path = "sv"}
 
 [format]
 indent_width = 4
+
+# `veryl synth`: quick gate-level area / critical-path / power estimate (SKY130,
+# approximate, no PDK or LibreLane needed). `clock_freq` (MHz) and `activity`
+# only scale the dynamic-power estimate.
+[synth]
+top         = "Adder"
+clock_freq  = 100
+activity    = 0.1
+timing_paths = 1

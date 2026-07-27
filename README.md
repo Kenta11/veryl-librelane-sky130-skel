@@ -19,10 +19,22 @@ from this skeleton for each and compare their reports.
 ```bash
 # in a new or existing project
 git skel init https://github.com/<owner>/veryl-librelane-sky130-skel
-make check     # functional check via `veryl test` (native simulator)
-make pnr       # synthesis + place & route with LibreLane (needs LibreLane + sky130)
-make report    # print area / power / timing of the run
+make           # area / power / timing (place & routes first if needed)
 ```
+
+Day to day that's the one command you need: `make` reads the numbers, running
+place & route the first time. After changing the RTL, run `make pnr` to refresh
+the layout, then `make` again. Other targets:
+
+```bash
+make synth     # quick area/critical-path/power estimate (`veryl synth`, no PDK)
+make check     # functional check via `veryl test` (native simulator)
+make pnr       # (re)run synthesis + place & route with LibreLane (needs sky130)
+```
+
+`make synth` is a fast, self-contained estimate straight from Veryl — no PDK or
+LibreLane needed — handy while iterating. `make` / `make pnr` give the accurate
+post-layout numbers.
 
 Replace `src/` with your design, point `DESIGN_NAME` in `librelane/config.json`
 at your top module, and re-run. Pull later skeleton improvements with
@@ -32,7 +44,7 @@ at your top module, and re-run. Pull later skeleton improvements with
 
 | Path | Role | Kind |
 |------|------|------|
-| `Makefile` | `check` / `sv` / `pnr` / `report` | infra |
+| `Makefile` | `report` (default) / `pnr` / `synth` / `check` / `sv` | infra |
 | `scripts/report.py` | reads the run's `metrics.json` → area/power/timing summary | infra |
 | `.github/workflows/veryl.yml` | `veryl fmt --check` / `check` / `test` / `build` | infra |
 | `docs/FLOW.md` | end-user flow guide (propagates to projects) | infra |

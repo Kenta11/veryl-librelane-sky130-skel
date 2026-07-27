@@ -36,11 +36,13 @@ module Adder #(
         }
     }
 
-    // combinational addition (WIDTH+1 bits to capture the carry-out)
-    const W1     : u32       = WIDTH + 1;
-    var   sum_ext: logic<W1>;
+    // combinational addition; {carry-out, sum} are captured together so there
+    // is no parameter-indexed part-select (keeps `veryl synth` happy).
+    const W1    : u32          = WIDTH + 1;
+    var   cout_c: logic       ;
+    var   sum_c : logic<WIDTH>;
     always_comb {
-        sum_ext = (a as W1) + (b as W1) + (cin as W1);
+        {cout_c, sum_c} = (a as W1) + (b as W1) + (cin as W1);
     }
 
     // registered outputs
@@ -49,8 +51,8 @@ module Adder #(
             o_sum  = 0;
             o_cout = 0;
         } else {
-            o_sum  = sum_ext[WIDTH - 1:0];
-            o_cout = sum_ext[WIDTH];
+            o_sum  = sum_c;
+            o_cout = cout_c;
         }
     }
 }

@@ -1,24 +1,36 @@
 # Veryl -> SystemVerilog -> LibreLane (place & route) -> area/power/timing.
 #
+#   make           show area/power/timing (runs place & route first if needed)
+#   make report    print area / power / timing from the latest run
+#   make pnr       (re)run the full LibreLane flow (synthesis .. place & route)
+#   make synth     quick area/critical-path/power estimate (veryl synth, no PDK)
 #   make check     functional check of the design (veryl test, native simulator)
 #   make sv        transpile the Veryl sources to SystemVerilog (sv/)
-#   make pnr       run the full LibreLane flow (synthesis .. place & route)
-#   make report    print area / power / timing from the latest run
-#   make all       pnr + report
 #   make clean     remove generated SV and LibreLane runs
+#
+# Day to day you just run `make`: it place-and-routes the design the first time,
+# then prints the numbers. After changing the RTL, run `make pnr` to refresh the
+# layout, then `make` (or `make report`) to see the new numbers.
 
 VERYL     ?= veryl
-LIBRELANE ?= librelane          # or: nix run github:librelane/librelane --
+# LibreLane launcher. Override for e.g. Nix: LIBRELANE="nix run github:librelane/librelane --"
+LIBRELANE ?= librelane
 PYTHON    ?= python3
 
-.PHONY: all check sv pnr report clean
+.DEFAULT_GOAL := report
 
-all: pnr report
+.PHONY: check synth sv pnr report clean
 
 # Functional check via Veryl's built-in native simulator (no external HDL
 # simulator required). Testbenches are the `#[test(...)]` modules under tb/.
 check:
 	$(VERYL) test
+
+# Fast, self-contained estimate straight from Veryl: gate-level area, critical
+# path and power, with no PDK or LibreLane. Great for quick iteration before the
+# full (slower, accurate) place & route. Tuned via the [synth] section in Veryl.toml.
+synth:
+	$(VERYL) synth
 
 sv:
 	$(VERYL) build
@@ -28,8 +40,11 @@ sv:
 pnr: sv
 	$(LIBRELANE) librelane/config.json
 
-# Print area / power / timing of the latest LibreLane run.
+# Print area / power / timing of the latest LibreLane run. If nothing has been
+# placed & routed yet, run the flow once first. (After an RTL change, run
+# `make pnr` to refresh the layout before reading the numbers again.)
 report:
+	@if [ -z "$(wildcard librelane/runs/*)" ]; then $(MAKE) pnr; fi
 	$(PYTHON) scripts/report.py
 
 clean:

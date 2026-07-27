@@ -2,6 +2,6 @@
     "DESIGN_NAME": "example_Adder",
     "VERILOG_FILES": "dir::../target/*.sv",
     "CLOCK_PORT": "i_clk",
-    "CLOCK_PERIOD": 8,
+    "CLOCK_PERIOD": 10,
     "PDK": "sky130A"
 }

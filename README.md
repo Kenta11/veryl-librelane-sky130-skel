@@ -36,9 +36,8 @@ make pnr       # (re)run synthesis + place & route with LibreLane (needs sky130)
 LibreLane needed — handy while iterating. `make` / `make pnr` give the accurate
 post-layout numbers.
 
-Replace `src/` with your design, point `DESIGN_NAME` in `librelane/config.json`
-at your top module, and re-run. Pull later skeleton improvements with
-`git skel update`.
+Swap in your own design as described below, and pull later skeleton improvements
+with `git skel update`.
 
 ## What's inside
 
@@ -47,7 +46,6 @@ at your top module, and re-run. Pull later skeleton improvements with
 | `Makefile` | `report` (default) / `pnr` / `synth` / `check` / `sv` | infra |
 | `scripts/report.py` | reads the run's `metrics.json` → area/power/timing summary | infra |
 | `.github/workflows/veryl.yml` | `veryl fmt --check` / `check` / `test` / `build` | infra |
-| `docs/FLOW.md` | end-user flow guide (propagates to projects) | infra |
 | `Veryl.toml` | project config — **rename & `.gitskelignore` in your project** | seed |
 | `src/*.veryl` | your design (one top module, may span several files) | seed |
 | `tb/*.veryl` | testbenches (`#[test]` modules, native simulator) | seed |
@@ -57,7 +55,22 @@ at your top module, and re-run. Pull later skeleton improvements with
 **seed** = starting content you own after `init`; add to your project's
 `.gitskelignore` so updates don't overwrite your work.
 
-See [`docs/FLOW.md`](docs/FLOW.md) for the full workflow.
+## Bringing your own design
+
+1. Put your RTL under `src/` (one top module, may span several files) and your
+   testbenches (`#[test]` modules) under `tb/`.
+2. Set `synth.top` in `Veryl.toml` and `DESIGN_NAME` in `librelane/config.json`
+   to your top module. Veryl prefixes module names with the project name, e.g.
+   project `example` + module `Adder` → `example_Adder`.
+3. `make check` → `make synth` → `make`.
+
+Notes:
+
+- **Timing**: to push `fmax`, sweep `CLOCK_PERIOD` in `librelane/config.json` —
+  shrink it until timing just closes. `SYNTH_STRATEGY` (area vs delay) also helps.
+- **SystemVerilog**: Veryl emits a synthesizable SV subset that Yosys reads with
+  native `read_verilog -sv`. Only add `USE_SLANG: true` to `librelane/config.json`
+  if you hand-write advanced SV (`interface`, `package`, …).
 
 ## License
 

@@ -1,13 +1,8 @@
-# Veryl build outputs / metadata
-/sv/
-/.build/
-/dependencies/
-Veryl.lock
+# Veryl build output
+.build/
+/target
+/dependencies
 *.f
-
-# Functional-check / simulation artifacts
-/build/
-*.vcd
 
 # LibreLane runs
 librelane/runs/

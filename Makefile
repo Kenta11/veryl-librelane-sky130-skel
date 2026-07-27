@@ -5,8 +5,8 @@
 #   make pnr       (re)run the full LibreLane flow (synthesis .. place & route)
 #   make synth     quick area/critical-path/power estimate (veryl synth, no PDK)
 #   make check     functional check of the design (veryl test, native simulator)
-#   make sv        transpile the Veryl sources to SystemVerilog (sv/)
-#   make clean     remove generated SV and LibreLane runs
+#   make sv        transpile the Veryl sources to SystemVerilog (target/)
+#   make clean     remove generated SystemVerilog and LibreLane runs
 #
 # Day to day you just run `make`: it place-and-routes the design the first time,
 # then prints the numbers. After changing the RTL, run `make pnr` to refresh the
@@ -28,7 +28,7 @@ check:
 
 # Fast, self-contained estimate straight from Veryl: gate-level area, critical
 # path and power, with no PDK or LibreLane. Great for quick iteration before the
-# full (slower, accurate) place & route. Tuned via the [synth] section in Veryl.toml.
+# full (slower, accurate) place & route.
 synth:
 	$(VERYL) synth
 
@@ -48,4 +48,4 @@ report:
 	$(PYTHON) scripts/report.py
 
 clean:
-	rm -rf sv build librelane/runs .build dependencies Veryl.lock *.f
+	rm -rf target librelane/runs .build dependencies Veryl.lock *.f

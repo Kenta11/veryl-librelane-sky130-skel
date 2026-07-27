@@ -6,10 +6,10 @@ A [git-skel](https://github.com/dalance/git-skel) skeleton for taking a
 place & route — and reading its **area / power / timing**.
 
 It ships the flow plumbing you don't want to rewrite per project — a `Makefile`,
-a metrics reporter (`scripts/report.py`), a LibreLane config with sensible
-defaults, and a Veryl CI workflow — plus a tiny example design (a registered
-32-bit adder) with a `tb/` testbench that runs on Veryl's built-in native
-simulator (no external HDL simulator required).
+a metrics reporter (`scripts/report.py`), a LibreLane config, and a Veryl CI
+workflow. A tiny example design (a registered 32-bit adder) with a `tb/`
+testbench lives in this repo so its own CI exercises the flow, but it is **not**
+copied into your project — you bring your own `src/` and `tb/`.
 
 One skeleton = one design. To compare multiple designs, start a separate project
 from this skeleton for each and compare their reports.
@@ -47,21 +47,23 @@ with `git skel update`.
 | `scripts/report.py` | reads the run's `metrics.json` → area/power/timing summary | infra |
 | `.github/workflows/veryl.yml` | `veryl fmt --check` / `check` / `test` / `build` | infra |
 | `Veryl.toml` | project config — **rename & `.gitskelignore` in your project** | seed |
-| `src/*.veryl` | your design (one top module, may span several files) | seed |
-| `tb/*.veryl` | testbenches (`#[test]` modules, native simulator) | seed |
 | `librelane/config.json` | LibreLane / sky130 config for the design | seed |
+| `src/*.veryl`, `tb/*.veryl` | example design + testbench — **repo only, not copied to your project** | example |
 
 **infra** = maintained by the skeleton, safe to receive on `git skel update`.
 **seed** = starting content you own after `init`; add to your project's
 `.gitskelignore` so updates don't overwrite your work.
+**example** = lives in this repo for its own CI only; excluded from propagation
+via the skeleton's `.gitskelignore`, so you never collide with it on update.
 
 ## Bringing your own design
 
 1. Put your RTL under `src/` (one top module, may span several files) and your
    testbenches (`#[test]` modules) under `tb/`.
-2. Set `synth.top` in `Veryl.toml` and `DESIGN_NAME` in `librelane/config.json`
-   to your top module. Veryl prefixes module names with the project name, e.g.
-   project `example` + module `Adder` → `example_Adder`.
+2. Set `project.name` in `Veryl.toml` and `DESIGN_NAME` in
+   `librelane/config.json` to match your top module. Veryl prefixes module names
+   with the project name, e.g. project `example` + module `Adder` →
+   `example_Adder` (which is what `DESIGN_NAME` must be).
 3. `make check` → `make synth` → `make`.
 
 Notes:

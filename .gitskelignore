@@ -7,3 +7,10 @@
 # License of the skeleton repo itself (projects keep their own).
 /LICENSE-MIT
 /LICENSE-APACHE
+
+# The example design + testbench are here only so the skeleton's own CI can
+# exercise the flow; they are NOT copied into your project. Put your own design
+# under src/ and your testbenches under tb/. Because they never propagate,
+# renaming or replacing them in your project can never collide on `git skel update`.
+/src/
+/tb/

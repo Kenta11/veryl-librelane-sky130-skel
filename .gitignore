@@ -5,9 +5,8 @@
 Veryl.lock
 *.f
 
-# Functional-check artifacts
+# Functional-check / simulation artifacts
 /build/
-*.vvp
 *.vcd
 
 # LibreLane runs and results

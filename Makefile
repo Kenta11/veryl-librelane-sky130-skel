@@ -1,7 +1,7 @@
 # Veryl -> SystemVerilog -> LibreLane flow.
 #
+#   make check     functional check of the RTL (veryl test, native simulator)
 #   make sv        transpile the Veryl sources to SystemVerilog (sv/)
-#   make check     functional check of the RTL with Icarus Verilog
 #   make flow      run the full LibreLane flow for every design
 #   make compare   collect area/power/timing into a comparison table
 #   make all       sv + flow + compare
@@ -13,25 +13,21 @@
 VERYL     ?= veryl
 LIBRELANE ?= librelane          # or: nix run github:librelane/librelane --
 PYTHON    ?= python3
-IVERILOG  ?= iverilog
 
 # every librelane/<name>/config.json -> <name>
-DESIGNS  := $(notdir $(patsubst %/,%,$(dir $(wildcard librelane/*/config.json))))
-SV_FILES := $(wildcard sv/*.sv)
-TB       := $(wildcard tb/*.sv)
+DESIGNS := $(notdir $(patsubst %/,%,$(dir $(wildcard librelane/*/config.json))))
 
-.PHONY: all sv check flow compare clean list $(addprefix flow-,$(DESIGNS))
+.PHONY: all check sv flow compare clean list $(addprefix flow-,$(DESIGNS))
 
 all: sv flow compare
 
+# Functional check via Veryl's built-in native simulator (no external HDL
+# simulator required). Tests are the `#[test(...)]` modules in src/*.veryl.
+check:
+	$(VERYL) test
+
 sv:
 	$(VERYL) build
-
-# Functional check. Requires a testbench under tb/ (tb/tb_check.sv by default).
-check: sv
-	@mkdir -p build
-	$(IVERILOG) -g2012 -o build/tb.vvp $(TB) sv/*.sv
-	vvp build/tb.vvp
 
 flow: $(addprefix flow-,$(DESIGNS))
 

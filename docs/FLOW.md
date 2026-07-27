@@ -11,9 +11,9 @@
 
 ## 必要なもの
 
-- **Veryl** — <https://veryl-lang.org/install/>
+- **Veryl** — <https://veryl-lang.org/install/>（機能検証は Veryl 組み込みの
+  ネイティブシミュレータを使うので、外部シミュレータは不要）
 - **LibreLane** — <https://github.com/librelane/librelane>（Nix 推奨）
-- **Icarus Verilog**（任意・機能検証用）
 - Python 3（比較スクリプト。標準ライブラリのみ）
 
 ## ディレクトリ構成
@@ -24,7 +24,6 @@
 ├── src/*.veryl                    RTL
 ├── sv/*.sv                        生成される SystemVerilog（make sv）
 ├── librelane/<design>/config.json 設計ごとの LibreLane 設定
-├── tb/*.sv                        機能検証テストベンチ（任意）
 ├── scripts/compare.py             metrics を集計して表を出力
 ├── docs/FLOW.md                   このドキュメント
 └── Makefile
@@ -33,12 +32,16 @@
 ## 使い方
 
 ```bash
+make check     # 機能検証（veryl test / ネイティブシミュレータ。外部ツール不要）
 make sv        # Veryl → SystemVerilog
-make check     # 機能検証（Icarus Verilog が必要）
 make flow      # LibreLane フロー（全設計。1 設計あたり数分）
 make compare   # 面積/電力/遅延の比較表を出力（results.csv も生成）
 make list      # 検出された設計名を表示
 ```
+
+機能検証は各 `src/*.veryl` 内の `#[test(...)]` モジュールを Veryl 組み込みの
+ネイティブシミュレータで実行します（`veryl test`）。設計を差し替えたら、対応する
+`#[test]` も一緒に更新してください。
 
 LibreLane の起動方法が違う場合は上書きできます:
 

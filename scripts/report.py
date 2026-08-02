@@ -133,6 +133,22 @@ def main():
         s = "n/a" if val is None else f"{val * scale:.{nd}f}{unit}"
         print(f"  {label:<22} {s}")
 
+    def pline(label, watts):
+        # auto-scale W -> mW/uW/nW so tiny values (e.g. leakage) stay visible
+        if watts is None:
+            s = "n/a"
+        else:
+            a = abs(watts)
+            if a >= 1.0:
+                s = f"{watts:.3f} W"
+            elif a >= 1e-3:
+                s = f"{watts * 1e3:.3f} mW"
+            elif a >= 1e-6:
+                s = f"{watts * 1e6:.3f} uW"
+            else:
+                s = f"{watts * 1e9:.3f} nW"
+        print(f"  {label:<22} {s}")
+
     print(f"design: {metrics.get('design__name', 'example_Adder')}")
     print(f"run:    {os.path.relpath(run, ROOT)}\n")
 
@@ -148,10 +164,10 @@ def main():
     line("fmax (approx)", fmax, " MHz", nd=1)
 
     print("\nPower")
-    line("total", power, " mW", scale=1e3, nd=3)
-    line("internal", p_int, " mW", scale=1e3, nd=3)
-    line("switching", p_sw, " mW", scale=1e3, nd=3)
-    line("leakage", p_leak, " mW", scale=1e3, nd=3)
+    pline("total", power)
+    pline("internal", p_int)
+    pline("switching", p_sw)
+    pline("leakage", p_leak)
 
 
 if __name__ == "__main__":
